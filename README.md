@@ -1,2 +1,5 @@
 # concurrency
-A Golang concurrency pattern with scenario for use
+Golang concurrency pattern with scenario for use
+
+## Table of patterns
+- [subscription pattern](subscription)
