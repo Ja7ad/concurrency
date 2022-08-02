@@ -51,3 +51,47 @@ func NewSubscription(ctx context.Context, fetcher Fetcher, freq uint) Subscripti
    - The first select case will be activated regularly by the time ticker. The fetcher will be run inside another goroutine, so that we won't be blocked if it takes a long time.
    - When the fetch result is finally ready, it will be received at the second select case. When there is an error, it breaks from the select statement and waits for the next iteration.
    - The third case is the standard case that waits for a context to terminate.
+
+```go
+func (s *sub) serve(ctx context.Context, freq uint) {
+	ticker := time.NewTicker(time.Duration(freq) * time.Second)
+	done := make(chan fetchResult, 1)
+
+	var (
+		fetchedCard         Card
+		fetchResponseStream chan Card
+		pending             bool
+	)
+
+	for {
+
+		if pending {
+			fetchResponseStream = s.updates
+		} else {
+			fetchResponseStream = nil
+		}
+
+		select {
+		case <-ticker.C:
+			if pending {
+				break
+			}
+			go func() {
+				fetched, err := s.fetcher.Fetch()
+				done <- fetchResult{fetched, err}
+			}()
+		case result := <-done:
+			fetchedCard = result.fetchedCard
+			if result.err != nil {
+				log.Printf("fetch got error %v", result.err)
+				break
+			}
+			pending = true
+		case fetchResponseStream <- fetchedCard:
+			pending = false
+		case <-ctx.Done():
+			return
+		}
+	}
+}
+```
