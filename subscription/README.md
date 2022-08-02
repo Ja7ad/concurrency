@@ -7,9 +7,6 @@ This pattern is based on the Advanced Go Concurrency Patterns Talk presented at 
 1. Per frequency time, consume data from publisher pub/sub
 2. Fetch data from API
 
-## Composition patterns
-- [For-Select-Done](../for-select-done)
-
 ## analyze of code
 1. For getting data, we abstract Subscription interface with Updates method 
 
